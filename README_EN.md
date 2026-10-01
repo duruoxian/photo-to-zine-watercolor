@@ -31,12 +31,12 @@ Turn my uploaded photos into Photo to Zine Watercolor cards (Mode A / Mode B).
 Date: YYYY.M.D, Location: <English place name>.
 ```
 
-## What this adds over the upstream skill
+## Core rules
 
-Built on [Whiplashzeb/photo-to-zine-postcard](https://github.com/Whiplashzeb/photo-to-zine-postcard) (v3.3), plus four battle-tested additions:
+Four hard rules validated on real batches:
 
-- **Mode B (pure watercolor page)** — the upstream only defines the photo-embedded structure.
-- **Portrait handling rules** — watercolor faces lose identity; the prompt must lock identity features (glasses/hood/framing) item by item, or the model invents a stranger.
+- **Two modes** — postcard front (photo embedded) and pure watercolor page, switchable in one line.
+- **Portrait handling** — watercolor faces lose identity; the prompt must lock identity features (glasses/hood/framing) item by item, or the model invents a stranger.
 - **Batch workflow** — confirmation, banner cropping, parallel generation, and unified acceptance for 10+ photos.
 - **White watermark removal** — the platform watermark is translucent **white** text; dark-pixel detection fails. Ships a reliable bright-mask + text-band localization + paper-patch repair, with strict zoom verification.
 

@@ -197,9 +197,3 @@ Quality: clean sharp lines, refined paper texture, low noise, no blur.
 - [ ] watermark removed, bottom-right corner zoom-verified (≥2.5×)
 - [ ] all cards same size
 - [ ] no forbidden elements
-
----
-
-## Credits
-
-Built on [Whiplashzeb/photo-to-zine-postcard](https://github.com/Whiplashzeb/photo-to-zine-postcard) (v3.3). This variant adds Mode B (pure watercolor page), portrait handling rules, a batch workflow, and white-watermark removal — all validated on real photo sets.
