@@ -75,26 +75,42 @@ If a source photo contains a person (selfie/portrait):
 - Exactly two lines: `DATE` / `LOCATION`. Nothing else.
 - Short date + short uppercase English location renders reliably (13/13 verified) — but still verify every card individually (see §10).
 
-## 8. Platform Watermark Removal (bottom-right "AI生成" mark)
+## 8. Platform Watermark Removal (bottom-right "AI生成" mark) — MANDATORY for every card
 
-**Critical: the watermark is BRIGHT, low-saturation, translucent WHITE text. Dark-pixel detection does not work — it only fades the mark and leaves a readable ghost.**
+Every generated card carries the platform's translucent white "AI生成" mark in the
+bottom-right corner. Removing it is a **mandatory pipeline step, not an option** — never
+deliver or publish a card that skipped this.
 
-Detection mask (inside ROI `x ≥ 70% W`, `y ≥ 88% H`):
+**Run the bundled script on every generated image** (needs Python + pillow + numpy):
 
+```bash
+python tools/remove_watermark.py <cards_dir_or_file> [--inplace] [--out DIR]
 ```
-lum = mean(R,G,B);  rng = max(R,G,B) − min(R,G,B)
-mask = (lum > median(lum) + 6) AND (rng < 16)
-```
 
-Two repair paths:
+It auto-detects whether the ROI is pure paper or has watercolor bleed, applies one of the
+two validated repairs below, and writes a `*_corner_check.png` (2.5× crop of the repaired
+corner) for the mandatory eyeball check. Do not re-implement the detection ad hoc — use
+the script so thresholds stay battle-tested.
 
-- **Motif sits high, ROI is pure paper** → row-wise horizontal inpaint (fill each masked pixel from the nearest unmasked pixel on the same row), then re-add paper grain: `grain = strip_above − GaussianBlur(strip_above, 8)`, add at 0.9 strength. If faint ghosts remain on uniform paper, clone the strip above wholesale with a ~12px vertical alpha blend.
-- **Motif bleeds into the ROI** (watercolor soft edges reach the bottom area) → **NEVER full-ROI inpaint** (it eats watercolor highlights and leaves cloud-shaped patches — verified failure). Instead locate the text band precisely:
-  1. row density of mask > 0.004 → hot rows; merge gaps < 25px into segments; take the bottom-most segment (the watermark band).
-  2. column range within the band → bbox, expand by 16px.
-  3. patch with same-height clean paper sampled from `x 38–70%` of the same image; 8px feathered edges.
+**Critical: the watermark is BRIGHT, low-saturation, translucent WHITE text. Dark-pixel
+detection does not work — it only fades the mark and leaves a readable ghost.**
 
-**Verification: only a ≥2.5× zoomed eyeball check of the bottom-right corner.** A pixel scan reporting "dark residual = 0" is a false negative (verified failure — the ghost is bright, not dark).
+What the script implements (ROI `x ≥ 70% W`, `y ≥ 88% H`; detection
+`lum = mean(R,G,B)`, `rng = max−min`, `mask = (lum > median(lum)+6) AND (rng < 16)`):
+
+- **Pure-paper ROI (motif sits high)** → row-wise horizontal inpaint from the nearest
+  clean pixel per row (plus off-paper outliers), blur 1.0, then restore paper grain from
+  the strip above: `texture = strip − blur(strip, 8)`, added at 0.9 strength.
+- **Motif bleeds into the ROI** → **NEVER full-ROI inpaint** (it eats watercolor
+  highlights and leaves cloud-shaped patches — verified failure). Locate the text band:
+  hot rows (mask row density > 0.004), merge gaps < 25px into segments, take the
+  bottom-most segment (the watermark always sits lowest), derive the bbox from column
+  density (expand 16px), then patch with same-height clean paper sampled around
+  `x 38–70%` with 8px feathered edges.
+
+**Verification: only a ≥2.5× zoomed eyeball check of the bottom-right corner** — open the
+script's `*_corner_check.png`. A pixel scan reporting "residual = 0" is a false negative
+(verified failure — the ghost is bright, not dark).
 
 ## 9. Batch Workflow (10+ photos)
 
@@ -102,7 +118,7 @@ Two repair paths:
 2. ONE confirmation round with the user: portrait treatment, metadata text, output scale. No per-card questions afterwards.
 3. Crop banners locally (Mode A).
 4. Parallel generation — one call per photo, shared template, per-photo motif sentence.
-5. Watermark removal on all cards.
+5. Watermark removal on ALL cards — run `tools/remove_watermark.py` (see §8), mandatory.
 6. Acceptance trio (+1): uniform sizes / watermark zoom check / metadata zoom check / portrait identity zoom check.
 
 ## 10. Acceptance Discipline
@@ -194,6 +210,6 @@ Quality: clean sharp lines, refined paper texture, low noise, no blur.
 - [ ] soft bleeding watercolor edges, no rectangular border
 - [ ] exactly two metadata lines, spelling verified per card
 - [ ] portraits: user warned, identity features itemized, likeness zoom-verified
-- [ ] watermark removed, bottom-right corner zoom-verified (≥2.5×)
+- [ ] tools/remove_watermark.py run on EVERY card; *_corner_check.png eyeballed (≥2.5×)
 - [ ] all cards same size
 - [ ] no forbidden elements

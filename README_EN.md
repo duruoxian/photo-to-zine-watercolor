@@ -38,7 +38,7 @@ Four hard rules validated on real batches:
 - **Two modes** — postcard front (photo embedded) and pure watercolor page, switchable in one line.
 - **Portrait handling** — watercolor faces lose identity; the prompt must lock identity features (glasses/hood/framing) item by item, or the model invents a stranger.
 - **Batch workflow** — confirmation, banner cropping, parallel generation, and unified acceptance for 10+ photos.
-- **White watermark removal** — the platform watermark is translucent **white** text; dark-pixel detection fails. Ships a reliable bright-mask + text-band localization + paper-patch repair, with strict zoom verification.
+- **White watermark removal** — the platform watermark is translucent **white** text; dark-pixel detection fails. The bundled [`tools/remove_watermark.py`](tools/remove_watermark.py) repairs it in one command (bright-mask detection + text-band localization + paper patch, auto path selection) and emits a 2.5× corner crop for the mandatory eyeball check.
 
 ## Default output
 
